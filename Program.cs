@@ -5,7 +5,7 @@ class Program
 	static void Main()
 	{
 		var addressBook = new AddressBook();
-		addressBook.Add(new Contact("Kalle", "Anka", "kalle@anka.se", new DateTime(1980, 1, 1)));
+		addressBook.Add(new Contact("Kalle", "Anka", "kalle@anka.se", new DateTime(1980, 10, 20)));
 		addressBook.Add(new Contact("Kajsa", "Anka", "kajsa@anka.se", new DateTime(1985, 2, 2)));
 
 		foreach (var c in addressBook.GetAll())
@@ -64,6 +64,11 @@ class AddressBook
 			}
 		}
 	}
+}
+
+interface IEmailService
+{
+	void SendEmail(string to, string subject, string body);
 }
 
 class TestEmailService
