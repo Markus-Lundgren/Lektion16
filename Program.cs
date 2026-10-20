@@ -1,4 +1,6 @@
-﻿class Program
+﻿using System.Text;
+
+class Program
 {
 	static void Main()
 	{
@@ -10,6 +12,7 @@
 		{
 			Console.WriteLine(c);
 		}
+		addressBook.SendBirthdayEmails();
 	}
 }
 
@@ -49,12 +52,32 @@ class AddressBook
 		}
 		return null;
 	}
+
+	public void SendBirthdayEmails()
+	{
+		foreach (Contact c in _contacts)
+		{
+			if (c.BirthDate.Month == DateTime.Now.Month && c.BirthDate.Day == DateTime.Now.Day)
+			{
+				TestEmailService t = new();
+				t.SendEmail(c.Email, "Grattis på födelsedagen!", $"Grattis {c.FirstName}! Du har blivit 1 år äldre");
+			}
+		}
+	}
 }
 
 class TestEmailService
 {
 	public void SendEmail(string to, string subject, string body)
 	{
+		StringBuilder sb = new();
+		sb.AppendLine($"To: {to}");
+		sb.AppendLine($"Subject: {subject}");
+		sb.AppendLine("------------------------");
+		sb.AppendLine(body);
 
+		Console.WriteLine(sb);
+
+		Console.WriteLine("Mail sent");
 	}
 }
