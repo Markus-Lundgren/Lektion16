@@ -5,12 +5,12 @@ class Program
 {
 	static void Main()
 	{
-		IEmailService emailService = new RealEmailService();
+		IEmailService emailService = new TestEmailService();
 		ILogger logger = new FileLogger();
 		IContactRepository repository = new FileContactRepository();
 		var addressBook = new AddressBook(emailService, repository, logger);
-		addressBook.Add(new Contact("Kalle", "Anka", "kalle@anka.se", new DateTime(1980, DateTime.Now.Month, DateTime.Now.Day)));
-		addressBook.Add(new Contact("Kajsa", "Anka", "kajsa@anka.se", new DateTime(1985, 2, 2)));
+		addressBook.Add(new Contact("Joakim", "von Anka", "joakim@von_anka.se", new DateTime(1980, DateTime.Now.Month, DateTime.Now.Day)));
+		addressBook.Add(new Contact("Mickey", "Mouse", "mickey@mouse.com", new DateTime(1928, 11, 8)));
 
 		foreach (var c in repository.GetAll())
 		{
