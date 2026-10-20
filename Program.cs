@@ -36,10 +36,7 @@ class AddressBook
 		_contacts.Add(contact);
 	}
 
-	public IEnumerable<Contact> GetAll()
-	{
-		return _contacts;
-	}
+	public IEnumerable<Contact> GetAll() => _contacts;
 
 	public Contact? FindByEmail(string email)
 	{
