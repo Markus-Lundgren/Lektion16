@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.Contracts;
+using System.Text;
 
 class Program
 {
@@ -6,12 +7,12 @@ class Program
 	{
 		IEmailService emailService = new RealEmailService();
 		ILogger logger = new FileLogger();
-		IContactRepository repository = new InMemoryContactRepository();
+		IContactRepository repository = new FileContactRepository();
 		var addressBook = new AddressBook(emailService, repository, logger);
 		addressBook.Add(new Contact("Kalle", "Anka", "kalle@anka.se", new DateTime(1980, DateTime.Now.Month, DateTime.Now.Day)));
 		addressBook.Add(new Contact("Kajsa", "Anka", "kajsa@anka.se", new DateTime(1985, 2, 2)));
 
-		foreach (var c in addressBook.GetAll())
+		foreach (var c in repository.GetAll())
 		{
 			Console.WriteLine(c);
 		}
@@ -29,7 +30,6 @@ class Contact(string firstName, string lastName, string email, DateTime birthDat
 
 class AddressBook
 {
-	private readonly List<Contact> _contacts = new();
 	private readonly IEmailService _emailService;
 	private readonly ILogger _logger;
 	private readonly IContactRepository _repository;
@@ -37,20 +37,13 @@ class AddressBook
 	=> (_emailService, _repository, _logger) = (emailService, repository, logger);
 	public void Add(Contact contact)
 	{
-		if (string.IsNullOrWhiteSpace(contact.Email) || !contact.Email.Contains("@"))
-		{
-			return;
-		}
-
-		_contacts.Add(contact);
+		_repository.Add(contact);
 		_logger.Log($"{DateTime.Now}: Lade till kontakt {contact.FirstName} {contact.LastName}");
 	}
 
-	public IEnumerable<Contact> GetAll() => _contacts;
-
 	public Contact? FindByEmail(string email)
 	{
-		foreach (var c in _contacts)
+		foreach (var c in _repository.GetAll())
 		{
 			if (c.Email.Equals(email, StringComparison.OrdinalIgnoreCase))
 			{
@@ -62,7 +55,7 @@ class AddressBook
 
 	public void SendBirthdayEmails()
 	{
-		foreach (Contact c in _contacts)
+		foreach (Contact c in _repository.GetAll())
 		{
 			if (c.BirthDate.Month == DateTime.Now.Month && c.BirthDate.Day == DateTime.Now.Day)
 			{
@@ -117,13 +110,49 @@ class RealEmailService : IEmailService
 
 class InMemoryContactRepository : IContactRepository
 {
+	private readonly List<Contact> _contacts = new();
 	public void Add(Contact contact)
 	{
-		throw new NotImplementedException();
+		if (string.IsNullOrWhiteSpace(contact.Email) || !contact.Email.Contains("@"))
+		{
+			return;
+		}
+		_contacts.Add(contact);
+	}
+
+	public IEnumerable<Contact> GetAll() => _contacts;
+}
+
+class FileContactRepository : IContactRepository
+{
+	private readonly List<Contact> _contacts = new();
+	public void Add(Contact contact)
+	{
+		if (string.IsNullOrWhiteSpace(contact.Email) || !contact.Email.Contains("@")) return;
+
+		bool exists = _contacts.Any(c => c.FirstName == contact.FirstName &&
+			c.LastName == contact.LastName && c.Email == contact.Email);
+
+		if (exists) return;
+
+		using (StreamWriter sw = File.AppendText("contacts.csv"))
+		{
+			sw.WriteLine($"{contact.FirstName},{contact.LastName},{contact.Email},{contact.BirthDate}");
+		}
 	}
 
 	public IEnumerable<Contact> GetAll()
 	{
-		throw new NotImplementedException();
+		List<Contact> _contacts = new();
+
+		string[] contacts = File.ReadAllLines("contacts.csv");
+		foreach (string line in contacts)
+		{
+			var values = line.Split(',');
+			Contact c = new(values[0], values[1], values[2], DateTime.Parse(values[3]));
+			_contacts.Add(c);
+		}
+
+		return _contacts;
 	}
 }
