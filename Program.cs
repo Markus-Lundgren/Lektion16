@@ -128,13 +128,18 @@ class FileContactRepository : IContactRepository
 	private readonly List<Contact> _contacts = new();
 	public void Add(Contact contact)
 	{
-		if (string.IsNullOrWhiteSpace(contact.Email) || !contact.Email.Contains("@")) return;
+		if (string.IsNullOrWhiteSpace(contact.Email) || !contact.Email.Contains("@"))
+		{
+			return;
+		}
 
-		bool exists = _contacts.Any(c => c.FirstName == contact.FirstName &&
+		if (File.Exists("contacts.csv"))
+		{
+			bool exists = GetAll().Any(c => c.FirstName == contact.FirstName &&
 			c.LastName == contact.LastName && c.Email == contact.Email);
 
-		if (exists) return;
-
+			if (exists) return;
+		}
 		using (StreamWriter sw = File.AppendText("contacts.csv"))
 		{
 			sw.WriteLine($"{contact.FirstName},{contact.LastName},{contact.Email},{contact.BirthDate}");
