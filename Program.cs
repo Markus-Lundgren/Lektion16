@@ -4,7 +4,8 @@ class Program
 {
 	static void Main()
 	{
-		var addressBook = new AddressBook();
+		IEmailService emailService = new TestEmailService();
+		var addressBook = new AddressBook(emailService);
 		addressBook.Add(new Contact("Kalle", "Anka", "kalle@anka.se", new DateTime(1980, 10, 20)));
 		addressBook.Add(new Contact("Kajsa", "Anka", "kajsa@anka.se", new DateTime(1985, 2, 2)));
 
@@ -29,6 +30,8 @@ class AddressBook
 {
 	private readonly List<Contact> _contacts = new();
 
+	private readonly IEmailService _emailService;
+	public AddressBook(IEmailService emailService) => _emailService = emailService;
 	public void Add(Contact contact)
 	{
 		if (string.IsNullOrWhiteSpace(contact.Email) || !contact.Email.Contains("@"))
@@ -59,8 +62,7 @@ class AddressBook
 		{
 			if (c.BirthDate.Month == DateTime.Now.Month && c.BirthDate.Day == DateTime.Now.Day)
 			{
-				TestEmailService t = new();
-				t.SendEmail(c.Email, "Grattis på födelsedagen!", $"Grattis {c.FirstName}! Du har blivit 1 år äldre");
+				_emailService.SendEmail(c.Email, "Grattis på födelsedagen!", $"Grattis {c.FirstName}! Du har blivit 1 år äldre");
 			}
 		}
 	}
@@ -71,7 +73,7 @@ interface IEmailService
 	void SendEmail(string to, string subject, string body);
 }
 
-class TestEmailService
+class TestEmailService : IEmailService
 {
 	public void SendEmail(string to, string subject, string body)
 	{
